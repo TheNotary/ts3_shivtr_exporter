@@ -25,6 +25,8 @@ class JenkinsCollector(object):
     def __init__(self, target):
         self._target = target.rstrip("/")
 
+    # Desired initial metric:
+    # users_logged_in{name="foo",channel="big_game_hunters"}
     def collect(self):
         """
         The collect method is special and must exist for the Python Prometheus
@@ -37,19 +39,16 @@ class JenkinsCollector(object):
 
         # self._setup_empty_prometheus_metrics()
 
-        # for job in jobs:
-        #     name = job['fullName']
-        #     if DEBUG:
-        #         print("Found Job: {}".format(name))
-        #         pprint(job)
-        #     self._get_metrics(name, job)
+        # ts3_user_login_count{user_name="foo", channel="blah"}
 
         metric = GaugeMetricFamily(
-            'jenkins_job_last_successful_build_timestamp_seconds',
-            'Jenkins build timestamp in unixtime for lastSuccessfulBuild',
-            labels=["jobname"])
+            'ts3_user_login_count',
+            'Teamspeak 3 user logged in',
+            labels=["user_name", "channel"])
 
-        metric.add_metric(['time_happy'], 10)   # 10 seconds
+        metric.add_metric(["foo", "blah"], 1)   # 1 user is logged in... I guess...
+        metric.add_metric(["bar", "blah"], 1)
+        metric.add_metric(["baz", "afk"], 1)
 
         yield metric
 
@@ -181,7 +180,7 @@ def parse_args():
         required=False,
         type=int,
         help='Listen to this port',
-        default=int(os.environ.get('VIRTUAL_PORT', '9118'))
+        default=int(os.environ.get('VIRTUAL_PORT', '5050'))
     )
     return parser.parse_args()
 
@@ -194,7 +193,7 @@ def main():
         start_http_server(port)
         print("Polling {}. Serving at port: {}".format(args.url, port))
         while True:
-            time.sleep(60)
+            time.sleep(1)
     except KeyboardInterrupt:
         print(" Interrupted")
         exit(0)
